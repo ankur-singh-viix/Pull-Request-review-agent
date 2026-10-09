@@ -1,9 +1,10 @@
 import os
 from collections.abc import Callable
 
+import httpx
 from langchain_core.prompts import ChatPromptTemplate
 
-from app import github_client
+from app import github_client, heuristics
 from app.llm import get_llm, use_fake
 from app.state import Finding, Findings, ReviewState, Verdict
 
@@ -109,21 +110,55 @@ def after_aggregate(state: ReviewState) -> str:
     return "publish"
 
 
-def format_comment(findings: list[Finding]) -> str:
-    if not findings:
-        return "### 🤖 AI Review\nNo issues found. Nice work!"
-    icon = {"high": "🔴", "medium": "🟠", "low": "🟡"}
-    lines = [f"### 🤖 AI Review: {len(findings)} finding(s)\n"]
+ICON = {"high": "🔴", "medium": "🟠", "low": "🟡"}
+
+
+def split_findings(diff: str, findings: list[Finding]) -> tuple[list[Finding], list[Finding]]:
+    """GitHub rejects the whole review if an inline comment targets a line outside the diff,
+    so only findings on added lines go inline; the rest go in the summary."""
+    valid = {(f, n) for f, n, _ in heuristics.added_lines(diff)}
+    inline: list[Finding] = []
+    general: list[Finding] = []
     for f in findings:
-        loc = f"`{f.file}:{f.line}`" if f.line else f"`{f.file}`"
-        lines.append(f"- {icon.get(f.severity, '⚪')} **{f.category}** {loc}: {f.message}")
+        (inline if f.line and (f.file, f.line) in valid else general).append(f)
+    return inline, general
+
+
+def inline_body(f: Finding) -> str:
+    return f"{ICON.get(f.severity, '⚪')} **{f.category}** ({f.severity}): {f.message}"
+
+
+def format_comment(findings: list[Finding], inline_count: int = 0) -> str:
+    """Summary body. `findings` are the ones NOT posted inline."""
+    total = len(findings) + inline_count
+    if total == 0:
+        return "### 🤖 AI Review\nNo issues found. Nice work!"
+    lines = [f"### 🤖 AI Review: {total} finding(s)"]
+    if inline_count:
+        lines.append(f"{inline_count} posted inline on the changed lines.")
+    if findings:
+        lines.append("")
+        for f in findings:
+            loc = f"`{f.file}:{f.line}`" if f.line else f"`{f.file}`"
+            lines.append(f"- {ICON.get(f.severity, '⚪')} **{f.category}** {loc}: {f.message}")
     return "\n".join(lines)
 
 
 def publish(state: ReviewState) -> dict:
-    comment = format_comment(state.get("final_findings", []))
-    dry = os.getenv("DRY_RUN", "1") == "1" or not state.get("repo")
-    if dry:
-        return {"comment": comment, "posted": False}
-    github_client.post_comment(state["repo"], state["pr_number"], comment)
-    return {"comment": comment, "posted": True}
+    findings = state.get("final_findings", [])
+    inline, general = split_findings(state["diff"], findings)
+    summary = format_comment(general, inline_count=len(inline))
+    comments = [{"path": f.file, "line": f.line, "side": "RIGHT", "body": inline_body(f)}
+                for f in inline]
+    out: dict = {"comment": summary, "inline_comments": comments, "posted": False}
+    if os.getenv("DRY_RUN", "1") == "1" or not state.get("repo"):
+        return out
+    repo, pr = state["repo"], state["pr_number"]
+    try:
+        sha = github_client.get_head_sha(repo, pr)
+        github_client.post_review(repo, pr, sha, summary, comments)
+    except httpx.HTTPStatusError:
+        # e.g. 422 from a stale line: fall back to one plain comment with everything
+        github_client.post_comment(repo, pr, format_comment(findings))
+    out["posted"] = True
+    return out

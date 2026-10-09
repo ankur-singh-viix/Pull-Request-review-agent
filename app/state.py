@@ -33,4 +33,5 @@ class ReviewState(TypedDict, total=False):
     pending: list[Finding]
     verify_attempts: int
     comment: str
+    inline_comments: list[dict]
     posted: bool
