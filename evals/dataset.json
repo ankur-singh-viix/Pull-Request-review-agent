@@ -1,0 +1,54 @@
+[
+  {
+    "id": "hardcoded-secret",
+    "expected": [
+      "security"
+    ],
+    "diff": "diff --git a/tests/conftest_x.py b/tests/conftest_x.py\n--- a/tests/conftest_x.py\n+++ b/tests/conftest_x.py\n@@ -0,0 +1,1 @@\n+TOKEN = \"ghp_abcdef123456\"\n"
+  },
+  {
+    "id": "eval-injection",
+    "expected": [
+      "security"
+    ],
+    "diff": "diff --git a/app/run.py b/app/run.py\n--- a/app/run.py\n+++ b/app/run.py\n@@ -0,0 +1,1 @@\n+out = eval(request.args['q'])\ndiff --git a/tests/test_run.py b/tests/test_run.py\n--- a/tests/test_run.py\n+++ b/tests/test_run.py\n@@ -0,0 +1,1 @@\n+def test_a(): pass\n"
+  },
+  {
+    "id": "shell-true",
+    "expected": [
+      "security"
+    ],
+    "diff": "diff --git a/tests/t.py b/tests/t.py\n--- a/tests/t.py\n+++ b/tests/t.py\n@@ -0,0 +1,1 @@\n+subprocess.run(cmd, shell=True)\n"
+  },
+  {
+    "id": "mutable-default",
+    "expected": [
+      "bug"
+    ],
+    "diff": "diff --git a/tests/h.py b/tests/h.py\n--- a/tests/h.py\n+++ b/tests/h.py\n@@ -0,0 +1,2 @@\n+def add(x, acc=[]):\n+    acc.append(x)\n"
+  },
+  {
+    "id": "none-compare",
+    "expected": [
+      "bug"
+    ],
+    "diff": "diff --git a/tests/h2.py b/tests/h2.py\n--- a/tests/h2.py\n+++ b/tests/h2.py\n@@ -0,0 +1,2 @@\n+if value == None:\n+    return 0\n"
+  },
+  {
+    "id": "missing-tests",
+    "expected": [
+      "tests"
+    ],
+    "diff": "diff --git a/app/service.py b/app/service.py\n--- a/app/service.py\n+++ b/app/service.py\n@@ -0,0 +1,2 @@\n+def compute(x):\n+    return x * 2\n"
+  },
+  {
+    "id": "clean-with-tests",
+    "expected": [],
+    "diff": "diff --git a/app/ok.py b/app/ok.py\n--- a/app/ok.py\n+++ b/app/ok.py\n@@ -0,0 +1,2 @@\n+def compute(x):\n+    return x * 2\ndiff --git a/tests/test_ok.py b/tests/test_ok.py\n--- a/tests/test_ok.py\n+++ b/tests/test_ok.py\n@@ -0,0 +1,2 @@\n+def test_compute():\n+    assert 1\n"
+  },
+  {
+    "id": "clean-docs",
+    "expected": [],
+    "diff": "diff --git a/tests/test_ok2.py b/tests/test_ok2.py\n--- a/tests/test_ok2.py\n+++ b/tests/test_ok2.py\n@@ -0,0 +1,2 @@\n+def test_x():\n+    assert True\n"
+  }
+]
