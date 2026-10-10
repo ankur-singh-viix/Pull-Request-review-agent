@@ -1,0 +1,309 @@
+{
+  "mode": "heuristic",
+  "tier": "all",
+  "recall": 0.30434782608695654,
+  "precision": 0.7777777777777778,
+  "errors": 0,
+  "false_positive_rate_on_clean": 0.25,
+  "per_category": {
+    "bug": {
+      "recall": 0.2857142857142857,
+      "precision": 1.0
+    },
+    "security": {
+      "recall": 0.2727272727272727,
+      "precision": 0.6
+    },
+    "style": {
+      "recall": 0.5,
+      "precision": 1.0
+    },
+    "tests": {
+      "recall": 0.3333333333333333,
+      "precision": 1.0
+    }
+  },
+  "cases": [
+    {
+      "id": "easy-hardcoded-secret",
+      "tier": "easy",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 0.01
+    },
+    {
+      "id": "easy-eval",
+      "tier": "easy",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 0.01
+    },
+    {
+      "id": "easy-shell-true",
+      "tier": "easy",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 0.01
+    },
+    {
+      "id": "easy-mutable-default",
+      "tier": "easy",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 0.0
+    },
+    {
+      "id": "easy-none-compare",
+      "tier": "easy",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 0.0
+    },
+    {
+      "id": "easy-missing-tests",
+      "tier": "easy",
+      "expected": [
+        "tests"
+      ],
+      "got": [
+        "tests"
+      ],
+      "seconds": 0.0
+    },
+    {
+      "id": "easy-long-line",
+      "tier": "easy",
+      "expected": [
+        "style"
+      ],
+      "got": [
+        "style"
+      ],
+      "seconds": 0.0
+    },
+    {
+      "id": "easy-clean-compute",
+      "tier": "easy",
+      "expected": [],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "easy-clean-clamp",
+      "tier": "easy",
+      "expected": [],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "easy-clean-subprocess-list",
+      "tier": "easy",
+      "expected": [],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "easy-clean-env-secret",
+      "tier": "easy",
+      "expected": [],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "easy-clean-with-open",
+      "tier": "easy",
+      "expected": [],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "easy-clean-is-none",
+      "tier": "easy",
+      "expected": [],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "hard-path-traversal",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "hard-pickle",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [],
+      "seconds": 0.01
+    },
+    {
+      "id": "hard-md5-password",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "hard-open-redirect",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "hard-jwt-no-verify",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "hard-yaml-load",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [],
+      "seconds": 0.01
+    },
+    {
+      "id": "hard-tls-verify-off",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "hard-missing-authz",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "hard-off-by-one",
+      "tier": "hard",
+      "expected": [
+        "bug"
+      ],
+      "got": [],
+      "seconds": 0.01
+    },
+    {
+      "id": "hard-missing-await",
+      "tier": "hard",
+      "expected": [
+        "bug"
+      ],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "hard-transfer-inverted",
+      "tier": "hard",
+      "expected": [
+        "bug"
+      ],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "hard-swallowed-exception",
+      "tier": "hard",
+      "expected": [
+        "bug"
+      ],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "hard-resource-leak",
+      "tier": "hard",
+      "expected": [
+        "bug"
+      ],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "hard-weak-test",
+      "tier": "hard",
+      "expected": [
+        "tests"
+      ],
+      "got": [],
+      "seconds": 0.01
+    },
+    {
+      "id": "hard-js-no-tests",
+      "tier": "hard",
+      "expected": [
+        "tests"
+      ],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "hard-commented-out-code",
+      "tier": "hard",
+      "expected": [
+        "style"
+      ],
+      "got": [],
+      "seconds": 0.0
+    },
+    {
+      "id": "hard-clean-eval-in-comment",
+      "tier": "hard",
+      "expected": [],
+      "got": [
+        "security"
+      ],
+      "seconds": 0.01
+    },
+    {
+      "id": "hard-clean-parametrized-sql",
+      "tier": "hard",
+      "expected": [],
+      "got": [
+        "security"
+      ],
+      "seconds": 0.0
+    }
+  ]
+}

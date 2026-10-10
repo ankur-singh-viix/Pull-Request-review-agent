@@ -11,6 +11,7 @@ class Finding(BaseModel):
     line: int | None = None
     message: str
     confidence: float = Field(default=0.7, ge=0, le=1)
+    rule: str | None = Field(default=None, description="Team guideline id such as SEC-1, if violated")
 
 
 class Findings(BaseModel):
@@ -27,6 +28,7 @@ class ReviewState(TypedDict, total=False):
     pr_number: int
     diff: str
     change_types: list[str]
+    guidelines: list[dict]
     # reducer lets parallel reviewer nodes append to the same key
     findings: Annotated[list[Finding], operator.add]
     final_findings: list[Finding]

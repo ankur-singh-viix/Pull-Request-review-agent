@@ -22,6 +22,8 @@ jobs:
   eval-gate:
     needs: test
     runs-on: ubuntu-latest
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -29,16 +31,23 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
-      # Offline baseline: deterministic, free, blocks regressions in graph logic
-      - name: Eval (offline baseline)
-        run: USE_FAKE_LLM=1 python -m evals.run_eval --min-recall 0.8 --min-precision 0.8
-      # Real model eval on main only, when the secret exists
-      - name: Eval (live LLM)
-        if: github.ref == 'refs/heads/main' && env.ANTHROPIC_API_KEY != ''
+      # Offline baseline: deterministic and free; blocks regressions in graph logic
+      - name: Eval (offline baseline, easy tier)
         env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-        run: python -m evals.run_eval --min-recall 0.7 --min-precision 0.7
-
+          USE_FAKE_LLM: "1"
+        run: python -m evals.run_eval --tier easy --min-recall 0.8 --min-precision 0.8
+      # Real model on every case, main branch only, when the secret exists
+      - name: Eval (live LLM, all cases)
+        if: github.ref == 'refs/heads/main' && env.ANTHROPIC_API_KEY != ''
+        run: >
+          python -m evals.run_eval --tier all --min-recall 0.7 --min-precision 0.7
+          --save evals/results/live.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: eval-results
+          path: evals/results/
+          if-no-files-found: ignore
   docker:
     needs: eval-gate
     if: github.ref == 'refs/heads/main'

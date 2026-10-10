@@ -1,7 +1,16 @@
 from langgraph.graph import END, START, StateGraph
 
 from app import heuristics
-from app.nodes import after_aggregate, aggregate, fetch, make_reviewer, publish, router, verify
+from app.nodes import (
+    after_aggregate,
+    aggregate,
+    fetch,
+    make_reviewer,
+    publish,
+    retrieve_guidelines,
+    router,
+    verify,
+)
 from app.state import ReviewState
 
 REVIEWERS = {
@@ -17,6 +26,7 @@ def build_graph():
     g = StateGraph(ReviewState)
     g.add_node("fetch", fetch)
     g.add_node("router", router)
+    g.add_node("retrieve_guidelines", retrieve_guidelines)
     for name, h in REVIEWERS.items():
         g.add_node(name, make_reviewer(CATEGORY[name], h))
     g.add_node("aggregate", aggregate)
@@ -25,8 +35,9 @@ def build_graph():
 
     g.add_edge(START, "fetch")
     g.add_edge("fetch", "router")
+    g.add_edge("router", "retrieve_guidelines")   # RAG over the team rulebook
     for name in REVIEWERS:          # fan-out: reviewers run in parallel
-        g.add_edge("router", name)
+        g.add_edge("retrieve_guidelines", name)
     g.add_edge(list(REVIEWERS), "aggregate")   # fan-in: wait for all reviewers
     g.add_conditional_edges("aggregate", after_aggregate, {"verify": "verify", "publish": "publish"})
     g.add_edge("verify", "aggregate")          # retry loop

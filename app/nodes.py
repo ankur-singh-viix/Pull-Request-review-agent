@@ -6,6 +6,7 @@ from langchain_core.prompts import ChatPromptTemplate
 
 from app import github_client, heuristics
 from app.llm import get_llm, use_fake
+from app.rag import build_query, get_retriever, guidelines_enabled
 from app.state import Finding, Findings, ReviewState, Verdict
 
 CONF_THRESHOLD = 0.6
@@ -44,22 +45,40 @@ def router(state: ReviewState) -> dict:
     return {"change_types": sorted(types)}
 
 
+def retrieve_guidelines(state: ReviewState) -> dict:
+    """RAG step: fetch the team rules most relevant to this diff."""
+    if not guidelines_enabled():
+        return {"guidelines": []}
+    docs = get_retriever().invoke(build_query(state["diff"], state.get("change_types", [])))
+    return {"guidelines": [
+        {"rule_id": d.metadata["rule_id"], "category": d.metadata["category"],
+         "text": d.page_content} for d in docs]}
+
+
 def _llm_review(category: str, state: ReviewState) -> list[Finding]:
+    rules = [g for g in state.get("guidelines", []) if g["category"] == category]
+    block = "\n\n".join(f"[{g['rule_id']}] {g['text']}" for g in rules) or "(none retrieved)"
     prompt = ChatPromptTemplate.from_messages([
         ("system", (
             "You are a meticulous senior code reviewer. Review ONLY for {focus}. "
             "Report only real issues in ADDED lines. Use the file path and new-file line number. "
             "Set confidence honestly (0-1). Return an empty list if the code is fine. "
-            "Change types in this PR: {types}.")),
+            "Change types in this PR: {types}.\n\n"
+            "Team guidelines relevant to this review. A violation is a finding; set `rule` to "
+            "the guideline id (for example SEC-1) when you cite one:\n{guidelines}")),
         ("human", "Category: {category}\n\nDiff:\n{diff}"),
     ])
     chain = prompt | get_llm().with_structured_output(Findings)
     result = chain.invoke({"focus": FOCUS[category], "category": category,
                            "types": ", ".join(state.get("change_types", [])),
+                           "guidelines": block,
                            "diff": state["diff"][:MAX_DIFF_CHARS]})
     out = Findings.model_validate(result).findings
+    valid_ids = {g["rule_id"] for g in rules}
     for f in out:
         f.category = category
+        if f.rule not in valid_ids:  # drop hallucinated rule ids
+            f.rule = None
     return out
 
 
@@ -124,8 +143,12 @@ def split_findings(diff: str, findings: list[Finding]) -> tuple[list[Finding], l
     return inline, general
 
 
+def _rule_tag(f: Finding) -> str:
+    return f" _(guideline {f.rule})_" if f.rule else ""
+
+
 def inline_body(f: Finding) -> str:
-    return f"{ICON.get(f.severity, '⚪')} **{f.category}** ({f.severity}): {f.message}"
+    return f"{ICON.get(f.severity, '⚪')} **{f.category}** ({f.severity}): {f.message}{_rule_tag(f)}"
 
 
 def format_comment(findings: list[Finding], inline_count: int = 0) -> str:
@@ -140,7 +163,8 @@ def format_comment(findings: list[Finding], inline_count: int = 0) -> str:
         lines.append("")
         for f in findings:
             loc = f"`{f.file}:{f.line}`" if f.line else f"`{f.file}`"
-            lines.append(f"- {ICON.get(f.severity, '⚪')} **{f.category}** {loc}: {f.message}")
+            lines.append(
+                f"- {ICON.get(f.severity, '⚪')} **{f.category}** {loc}: {f.message}{_rule_tag(f)}")
     return "\n".join(lines)
 
 
