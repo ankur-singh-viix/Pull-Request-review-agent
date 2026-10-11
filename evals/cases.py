@@ -13,18 +13,12 @@ def _diff(path: str, lines: list[str]) -> str:
             f"@@ -0,0 +1,{len(lines)} @@\n{body}\n")
 
 
-TEST = _diff("tests/test_sample.py", [
-    "from app.sample import handler",
-    "",
-    "def test_handler_returns_input():",
-    '    assert handler("x") == "x"',
-])
-
-
-def _case(cid: str, tier: str, expected: list[str], path: str, lines: list[str],
-          with_tests: bool = True) -> dict:
-    diff = _diff(path, lines) + (TEST if with_tests else "")
-    return {"id": cid, "tier": tier, "expected": expected, "diff": diff}
+def _case(cid: str, tier: str, expected: list[str], path: str, lines: list[str]) -> dict:
+    """Single-file snippet. Test coverage is only scored for cases that expect a `tests`
+    finding, because a snippet has no realistic test context to judge."""
+    ignore = [] if "tests" in expected else ["tests"]
+    return {"id": cid, "tier": tier, "expected": expected, "ignore": ignore,
+            "diff": _diff(path, lines)}
 
 
 CASES: list[dict] = [
@@ -40,7 +34,7 @@ CASES: list[dict] = [
     _case("easy-none-compare", "easy", ["bug"], "app/check.py",
           ["def check(value):", "    if value == None:", "        return 0", "    return value"]),
     _case("easy-missing-tests", "easy", ["tests"], "app/service.py",
-          ["def compute(x):", "    return x * 2"], with_tests=False),
+          ["def compute(x):", "    return x * 2"]),
     _case("easy-long-line", "easy", ["style"], "app/msg.py",
           ['MESSAGE = "' + "x" * 130 + '"']),
     _case("easy-clean-compute", "easy", [], "app/ok.py",
@@ -99,7 +93,7 @@ CASES: list[dict] = [
           ["def read_words(path):", "    f = open(path)", "    return f.read().split()"]),
 
     # ---------------- hard: tests / style ----------------
-    {"id": "hard-weak-test", "tier": "hard", "expected": ["tests"],
+    {"id": "hard-weak-test", "tier": "hard", "expected": ["tests"], "ignore": [],
      "diff": _diff("app/pricing.py", [
          "def apply_discount(price, rate):", "    if rate > 1:", "        raise ValueError(rate)",
          "    return price * (1 - rate)"]) + _diff("tests/test_pricing.py", [
@@ -107,7 +101,7 @@ CASES: list[dict] = [
          "    apply_discount(100, 0.1)"])},
     _case("hard-js-no-tests", "hard", ["tests"], "app/cart.js",
           ["export function total(items) {",
-           "  return items.reduce((s, i) => s + i.price * i.qty, 0);", "}"], with_tests=False),
+           "  return items.reduce((s, i) => s + i.price * i.qty, 0);", "}"]),
     _case("hard-commented-out-code", "hard", ["style"], "app/orders.py",
           ["def process(order):", "    # total = sum(i.price for i in order.items)",
            "    # if total > 100:", "    #     apply_discount(order)", "    # send_email(order)",
@@ -131,7 +125,8 @@ CASES: list[dict] = [
            "    except ValueError as e:", '        return {"error": str(e)}, 400']),
     _case("team-internal-raw-requests", "team", ["security"], "app/billing.py",
           ["import requests", "", "def invoice(invoice_id):",
-           '    return requests.get("http://billing.internal/api/invoices/" + invoice_id, timeout=5).json()']),
+           '    response = requests.get("http://billing.internal/api/invoices/" + invoice_id, timeout=5)',
+           "    response.raise_for_status()", "    return response.json()"]),
     _case("team-logger", "team", ["style"], "app/jobs.py",
           ["import logging", "", "logger = logging.getLogger(__name__)", "",
            "def run():", '    logger.info("started")']),

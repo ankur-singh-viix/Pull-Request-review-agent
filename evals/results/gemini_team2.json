@@ -1,0 +1,119 @@
+{
+  "mode": "gemini:gemini-3.1-flash-lite rag=on",
+  "tier": "team",
+  "recall": 1.0,
+  "precision": 0.8,
+  "errors": 0,
+  "false_positive_rate_on_clean": 0.0,
+  "per_category": {
+    "bug": {
+      "recall": 1.0,
+      "precision": 0.6666666666666666
+    },
+    "security": {
+      "recall": 1.0,
+      "precision": 1.0
+    },
+    "style": {
+      "recall": 1.0,
+      "precision": 1.0
+    }
+  },
+  "cases": [
+    {
+      "id": "team-raw-request-json",
+      "tier": "team",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 29.45,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 3,
+          "rule": "REL-5",
+          "message": "Directly accessing request.get_json() violates REL-5. Use a Pydantic model for request body validation."
+        },
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 4,
+          "rule": "REL-3",
+          "message": "The function create() is likely an async coroutine but is not being awaited, violating REL-3."
+        }
+      ]
+    },
+    {
+      "id": "team-leak-exception",
+      "tier": "team",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 26.48,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "medium",
+          "line": 5,
+          "rule": "REL-6",
+          "message": "Returning raw exception text to the client violates REL-6. Log the exception and return a generic error message instead."
+        }
+      ]
+    },
+    {
+      "id": "team-internal-raw-requests",
+      "tier": "team",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "bug",
+        "security"
+      ],
+      "seconds": 27.16,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 4,
+          "rule": "SEC-6",
+          "message": "Direct call to internal service 'billing.internal' detected. Use 'internal_client' instead of 'requests.get' to ensure proper authentication and timeouts."
+        },
+        {
+          "category": "bug",
+          "severity": "medium",
+          "line": 4,
+          "rule": null,
+          "message": "The request result is not checked for success (e.g., status_code 200) before calling .json(), which will raise an exception for non-200 responses."
+        }
+      ]
+    },
+    {
+      "id": "team-logger",
+      "tier": "team",
+      "expected": [
+        "style"
+      ],
+      "got": [
+        "style"
+      ],
+      "seconds": 35.69,
+      "findings": [
+        {
+          "category": "style",
+          "severity": "medium",
+          "line": 3,
+          "rule": "STY-4",
+          "message": "Use get_logger from app.logging instead of logging.getLogger"
+        }
+      ]
+    }
+  ]
+}

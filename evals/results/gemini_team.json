@@ -1,0 +1,80 @@
+{
+  "mode": "gemini:gemini-3.1-flash-lite rag=on",
+  "tier": "team",
+  "recall": 1.0,
+  "precision": 0.3333333333333333,
+  "errors": 0,
+  "false_positive_rate_on_clean": 0.0,
+  "per_category": {
+    "bug": {
+      "recall": 1.0,
+      "precision": 0.6666666666666666
+    },
+    "security": {
+      "recall": 1.0,
+      "precision": 1.0
+    },
+    "style": {
+      "recall": 1.0,
+      "precision": 0.25
+    },
+    "tests": {
+      "recall": 1.0,
+      "precision": 0.0
+    }
+  },
+  "cases": [
+    {
+      "id": "team-raw-request-json",
+      "tier": "team",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug",
+        "style",
+        "tests"
+      ],
+      "seconds": 30.77
+    },
+    {
+      "id": "team-leak-exception",
+      "tier": "team",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug",
+        "style",
+        "tests"
+      ],
+      "seconds": 25.99
+    },
+    {
+      "id": "team-internal-raw-requests",
+      "tier": "team",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security",
+        "style",
+        "tests"
+      ],
+      "seconds": 27.32
+    },
+    {
+      "id": "team-logger",
+      "tier": "team",
+      "expected": [
+        "style"
+      ],
+      "got": [
+        "bug",
+        "style",
+        "tests"
+      ],
+      "seconds": 26.34
+    }
+  ]
+}

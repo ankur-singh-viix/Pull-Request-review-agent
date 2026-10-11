@@ -1,0 +1,97 @@
+{
+  "mode": "gemini:gemini-3.1-flash-lite rag=off verify=off",
+  "tier": "team",
+  "recall": 0.5,
+  "precision": 0.6666666666666666,
+  "errors": 0,
+  "false_positive_rate_on_clean": 0.0,
+  "per_category": {
+    "bug": {
+      "recall": 0.5,
+      "precision": 1.0
+    },
+    "security": {
+      "recall": 1.0,
+      "precision": 0.5
+    },
+    "style": {
+      "recall": 0.0,
+      "precision": 1.0
+    }
+  },
+  "cases": [
+    {
+      "id": "team-raw-request-json",
+      "tier": "team",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 31.76,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 4,
+          "rule": null,
+          "confidence": 0.8,
+          "message": "Potential SQL injection vulnerability. The 'item' and 'qty' fields from the request body are passed directly to the 'create' function without validation or sanitization."
+        }
+      ]
+    },
+    {
+      "id": "team-leak-exception",
+      "tier": "team",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 26.19,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "medium",
+          "line": 3,
+          "rule": null,
+          "confidence": 0.9,
+          "message": "The function 'process' is called without being defined or imported in the provided snippet, which will raise a NameError if executed."
+        }
+      ]
+    },
+    {
+      "id": "team-internal-raw-requests",
+      "tier": "team",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 25.25,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 4,
+          "rule": null,
+          "confidence": 0.8,
+          "message": "Potential Path Traversal or SSRF vulnerability via unsanitized input in URL construction."
+        }
+      ]
+    },
+    {
+      "id": "team-logger",
+      "tier": "team",
+      "expected": [
+        "style"
+      ],
+      "got": [],
+      "seconds": 27.26,
+      "findings": []
+    }
+  ]
+}

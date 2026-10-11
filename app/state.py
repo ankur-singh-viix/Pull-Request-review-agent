@@ -12,6 +12,7 @@ class Finding(BaseModel):
     message: str
     confidence: float = Field(default=0.7, ge=0, le=1)
     rule: str | None = Field(default=None, description="Team guideline id such as SEC-1, if violated")
+    verified: bool = Field(default=False, description="Always false; set by the system")
 
 
 class Findings(BaseModel):

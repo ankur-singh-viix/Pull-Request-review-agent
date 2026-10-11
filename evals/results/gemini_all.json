@@ -1,0 +1,785 @@
+{
+  "mode": "gemini:gemini-3.1-flash-lite rag=on verify=off",
+  "tier": "all",
+  "recall": 0.8518518518518519,
+  "precision": 0.6216216216216216,
+  "errors": 0,
+  "false_positive_rate_on_clean": 0.75,
+  "per_category": {
+    "bug": {
+      "recall": 0.8888888888888888,
+      "precision": 0.47058823529411764
+    },
+    "security": {
+      "recall": 0.8333333333333334,
+      "precision": 0.7692307692307693
+    },
+    "style": {
+      "recall": 0.6666666666666666,
+      "precision": 0.5
+    },
+    "tests": {
+      "recall": 1.0,
+      "precision": 1.0
+    }
+  },
+  "cases": [
+    {
+      "id": "easy-hardcoded-secret",
+      "tier": "easy",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 29.49,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 1,
+          "rule": "SEC-2",
+          "confidence": 1.0,
+          "message": "Hardcoded API key detected. Secrets must be retrieved from environment variables or a secret manager."
+        }
+      ]
+    },
+    {
+      "id": "easy-eval",
+      "tier": "easy",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 27.12,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 2,
+          "rule": "SEC-3",
+          "confidence": 1.0,
+          "message": "Use of eval() on user-provided input is a critical security vulnerability allowing arbitrary code execution."
+        }
+      ]
+    },
+    {
+      "id": "easy-shell-true",
+      "tier": "easy",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 26.26,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 4,
+          "rule": "SEC-3",
+          "confidence": 1.0,
+          "message": "Use of shell=True in subprocess.run is dangerous when handling dynamic input as it allows for shell injection attacks."
+        }
+      ]
+    },
+    {
+      "id": "easy-mutable-default",
+      "tier": "easy",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 27.28,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 1,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Mutable default argument 'bucket=[]' persists across function calls, leading to unexpected state sharing between different invocations."
+        }
+      ]
+    },
+    {
+      "id": "easy-none-compare",
+      "tier": "easy",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 26.78,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "low",
+          "line": 2,
+          "rule": null,
+          "confidence": 0.9,
+          "message": "Comparison to None should use 'is None' instead of '== None' to avoid potential issues with overridden __eq__ methods."
+        }
+      ]
+    },
+    {
+      "id": "easy-missing-tests",
+      "tier": "easy",
+      "expected": [
+        "tests"
+      ],
+      "got": [
+        "tests"
+      ],
+      "seconds": 26.7,
+      "findings": [
+        {
+          "category": "tests",
+          "severity": "medium",
+          "line": 1,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Newly added source code lacks accompanying unit tests."
+        }
+      ]
+    },
+    {
+      "id": "easy-long-line",
+      "tier": "easy",
+      "expected": [
+        "style"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 26.64,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "medium",
+          "line": 1,
+          "rule": null,
+          "confidence": 0.8,
+          "message": "Hardcoded secret or sensitive configuration detected in source code."
+        }
+      ]
+    },
+    {
+      "id": "easy-clean-compute",
+      "tier": "easy",
+      "expected": [],
+      "got": [],
+      "seconds": 26.77,
+      "findings": []
+    },
+    {
+      "id": "easy-clean-clamp",
+      "tier": "easy",
+      "expected": [],
+      "got": [
+        "bug"
+      ],
+      "seconds": 27.64,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "medium",
+          "line": 2,
+          "rule": null,
+          "confidence": 0.8,
+          "message": "The clamp function does not handle the case where lo > hi, which can lead to unexpected behavior (returning hi instead of lo or vice versa depending on input)."
+        }
+      ]
+    },
+    {
+      "id": "easy-clean-subprocess-list",
+      "tier": "easy",
+      "expected": [],
+      "got": [
+        "bug"
+      ],
+      "seconds": 26.39,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "medium",
+          "line": 4,
+          "rule": null,
+          "confidence": 0.9,
+          "message": "The function does not handle potential CalledProcessError exceptions when git status fails (e.g., if not in a git repository), which will cause the application to crash."
+        }
+      ]
+    },
+    {
+      "id": "easy-clean-env-secret",
+      "tier": "easy",
+      "expected": [],
+      "got": [
+        "bug"
+      ],
+      "seconds": 26.93,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 3,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Accessing os.environ['API_KEY'] directly will raise a KeyError if the environment variable is missing, causing the application to crash on startup. Use os.getenv('API_KEY') or provide a default value."
+        }
+      ]
+    },
+    {
+      "id": "easy-clean-with-open",
+      "tier": "easy",
+      "expected": [],
+      "got": [
+        "security"
+      ],
+      "seconds": 27.02,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 2,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Path traversal vulnerability: The 'path' argument is used directly in open() without validation, allowing an attacker to read arbitrary files on the system."
+        }
+      ]
+    },
+    {
+      "id": "easy-clean-is-none",
+      "tier": "easy",
+      "expected": [],
+      "got": [],
+      "seconds": 26.6,
+      "findings": []
+    },
+    {
+      "id": "hard-path-traversal",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 27.44,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 7,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Path traversal vulnerability: The filename from user input is joined with a base directory without validation, allowing access to arbitrary files on the system."
+        }
+      ]
+    },
+    {
+      "id": "hard-pickle",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "bug",
+        "security"
+      ],
+      "seconds": 27.11,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 4,
+          "rule": "SEC-4",
+          "confidence": 1.0,
+          "message": "Use of pickle.loads on untrusted request body allows for arbitrary code execution."
+        },
+        {
+          "category": "bug",
+          "severity": "medium",
+          "line": 3,
+          "rule": "REL-5",
+          "confidence": 1.0,
+          "message": "The function reads request.body directly instead of using a Pydantic model for validation."
+        }
+      ]
+    },
+    {
+      "id": "hard-md5-password",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 26.8,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 4,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Use of weak cryptographic hash function MD5 for password storage. Use a strong, salted hashing algorithm like Argon2 or bcrypt instead."
+        }
+      ]
+    },
+    {
+      "id": "hard-open-redirect",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 26.64,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 4,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Open redirect vulnerability: The 'next' parameter from user-supplied request arguments is used directly in redirect() without validation, allowing attackers to redirect users to malicious external sites."
+        }
+      ]
+    },
+    {
+      "id": "hard-jwt-no-verify",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 27.12,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 4,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Disabling JWT signature verification allows attackers to forge tokens and bypass authentication/authorization checks."
+        }
+      ]
+    },
+    {
+      "id": "hard-yaml-load",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 27.66,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 4,
+          "rule": "SEC-4",
+          "confidence": 1.0,
+          "message": "Use of unsafe yaml.load() detected. This function can execute arbitrary code during deserialization. Use yaml.safe_load() instead."
+        }
+      ]
+    },
+    {
+      "id": "hard-tls-verify-off",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 27.34,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 4,
+          "rule": "REL-4",
+          "confidence": 1.0,
+          "message": "Outbound HTTP call missing timeout parameter, which can lead to resource exhaustion."
+        }
+      ]
+    },
+    {
+      "id": "hard-missing-authz",
+      "tier": "hard",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 28.19,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 3,
+          "rule": null,
+          "confidence": 0.9,
+          "message": "The delete operation does not check if the user exists before returning success, and lacks error handling for database failures or missing records."
+        }
+      ]
+    },
+    {
+      "id": "hard-off-by-one",
+      "tier": "hard",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 26.2,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 4,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "IndexError: list index out of range. The loop range(len(items) + 1) attempts to access an index equal to the length of the list, which is out of bounds."
+        }
+      ]
+    },
+    {
+      "id": "hard-missing-await",
+      "tier": "hard",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 26.97,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 5,
+          "rule": "REL-3",
+          "confidence": 1.0,
+          "message": "The coroutine 'fetch_user' is called without 'await', resulting in a coroutine object instead of the user object. This will cause an AttributeError when accessing '.name'."
+        }
+      ]
+    },
+    {
+      "id": "hard-transfer-inverted",
+      "tier": "hard",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 25.58,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 2,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Logic error: The transfer function adds the amount to the source account and subtracts it from the destination account, which is the reverse of a standard bank transfer. This could lead to unauthorized balance manipulation."
+        }
+      ]
+    },
+    {
+      "id": "hard-swallowed-exception",
+      "tier": "hard",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug",
+        "style"
+      ],
+      "seconds": 27.46,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 3,
+          "rule": "REL-1",
+          "confidence": 1.0,
+          "message": "Swallowing exceptions without logging or re-raising violates REL-1 and hides potential database failures."
+        },
+        {
+          "category": "style",
+          "severity": "medium",
+          "line": 5,
+          "rule": null,
+          "confidence": 0.95,
+          "message": "Swallowing exceptions without logging or re-raising makes debugging impossible and hides potential failures."
+        }
+      ]
+    },
+    {
+      "id": "hard-resource-leak",
+      "tier": "hard",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 26.56,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "medium",
+          "line": 2,
+          "rule": "REL-2",
+          "confidence": 1.0,
+          "message": "File handle is not closed after opening. Use a 'with' block to ensure resources are released."
+        }
+      ]
+    },
+    {
+      "id": "hard-weak-test",
+      "tier": "hard",
+      "expected": [
+        "tests"
+      ],
+      "got": [
+        "bug",
+        "tests"
+      ],
+      "seconds": 27.19,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "medium",
+          "line": 2,
+          "rule": null,
+          "confidence": 0.8,
+          "message": "The logic fails to handle negative discount rates, which could lead to price increases instead of discounts."
+        },
+        {
+          "category": "tests",
+          "severity": "medium",
+          "line": 3,
+          "rule": "TST-1",
+          "confidence": 1.0,
+          "message": "Test function test_discount lacks assertions to verify the behavior of apply_discount."
+        }
+      ]
+    },
+    {
+      "id": "hard-js-no-tests",
+      "tier": "hard",
+      "expected": [
+        "tests"
+      ],
+      "got": [
+        "tests"
+      ],
+      "seconds": 27.28,
+      "findings": [
+        {
+          "category": "tests",
+          "severity": "high",
+          "line": 1,
+          "rule": "TST-1",
+          "confidence": 1.0,
+          "message": "New function 'total' added without accompanying tests."
+        }
+      ]
+    },
+    {
+      "id": "hard-commented-out-code",
+      "tier": "hard",
+      "expected": [
+        "style"
+      ],
+      "got": [
+        "style"
+      ],
+      "seconds": 26.34,
+      "findings": [
+        {
+          "category": "style",
+          "severity": "low",
+          "line": 2,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Dead code detected: commented-out code should be removed."
+        },
+        {
+          "category": "style",
+          "severity": "low",
+          "line": 3,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Dead code detected: commented-out code should be removed."
+        },
+        {
+          "category": "style",
+          "severity": "low",
+          "line": 4,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Dead code detected: commented-out code should be removed."
+        },
+        {
+          "category": "style",
+          "severity": "low",
+          "line": 5,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Dead code detected: commented-out code should be removed."
+        }
+      ]
+    },
+    {
+      "id": "hard-clean-eval-in-comment",
+      "tier": "hard",
+      "expected": [],
+      "got": [
+        "bug",
+        "style"
+      ],
+      "seconds": 26.05,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 5,
+          "rule": null,
+          "confidence": 0.9,
+          "message": "ast.literal_eval raises ValueError or SyntaxError on invalid input, which is not handled. This will cause the application to crash if the input is not a valid Python literal."
+        },
+        {
+          "category": "style",
+          "severity": "low",
+          "line": 4,
+          "rule": "STY-2",
+          "confidence": 1.0,
+          "message": "Commented-out code detected. Remove dead code instead of commenting it out."
+        }
+      ]
+    },
+    {
+      "id": "hard-clean-parametrized-sql",
+      "tier": "hard",
+      "expected": [],
+      "got": [
+        "bug"
+      ],
+      "seconds": 27.16,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "medium",
+          "line": 3,
+          "rule": null,
+          "confidence": 0.8,
+          "message": "The function returns the result of fetchone() directly without checking if the result is None. Callers expecting a user object may encounter an AttributeError if they attempt to access attributes on the returned None value."
+        }
+      ]
+    },
+    {
+      "id": "team-raw-request-json",
+      "tier": "team",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 35.32,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 3,
+          "rule": "REL-5",
+          "confidence": 1.0,
+          "message": "Directly accessing request.get_json() violates REL-5. Use a Pydantic model for request body validation."
+        }
+      ]
+    },
+    {
+      "id": "team-leak-exception",
+      "tier": "team",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 22.14,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "medium",
+          "line": 5,
+          "rule": "REL-6",
+          "confidence": 1.0,
+          "message": "Returning raw exception text to the client violates REL-6. Log the exception and return a generic error message instead."
+        }
+      ]
+    },
+    {
+      "id": "team-internal-raw-requests",
+      "tier": "team",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 26.98,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 4,
+          "rule": "SEC-6",
+          "confidence": 1.0,
+          "message": "Direct use of requests to call internal service billing.internal violates SEC-6. Use internal_client instead."
+        }
+      ]
+    },
+    {
+      "id": "team-logger",
+      "tier": "team",
+      "expected": [
+        "style"
+      ],
+      "got": [
+        "style"
+      ],
+      "seconds": 27.15,
+      "findings": [
+        {
+          "category": "style",
+          "severity": "medium",
+          "line": 3,
+          "rule": "STY-4",
+          "confidence": 1.0,
+          "message": "Use get_logger(__name__) from app.logging instead of logging.getLogger"
+        }
+      ]
+    }
+  ]
+}

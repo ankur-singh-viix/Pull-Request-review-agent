@@ -1,0 +1,267 @@
+{
+  "mode": "gemini:gemini-3.1-flash-lite rag=on",
+  "tier": "easy",
+  "recall": 0.8571428571428571,
+  "precision": 0.5454545454545454,
+  "errors": 0,
+  "false_positive_rate_on_clean": 0.6666666666666666,
+  "per_category": {
+    "bug": {
+      "recall": 1.0,
+      "precision": 0.4
+    },
+    "security": {
+      "recall": 1.0,
+      "precision": 0.6
+    },
+    "style": {
+      "recall": 0.0,
+      "precision": 1.0
+    },
+    "tests": {
+      "recall": 1.0,
+      "precision": 1.0
+    }
+  },
+  "cases": [
+    {
+      "id": "easy-hardcoded-secret",
+      "tier": "easy",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 31.31,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 1,
+          "rule": "SEC-2",
+          "confidence": 1.0,
+          "message": "Hardcoded API key detected. Secrets must be retrieved from environment variables or a secret manager."
+        }
+      ]
+    },
+    {
+      "id": "easy-eval",
+      "tier": "easy",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 27.44,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 2,
+          "rule": "SEC-3",
+          "confidence": 1.0,
+          "message": "Use of eval() on user-provided input is a critical security vulnerability allowing arbitrary code execution."
+        }
+      ]
+    },
+    {
+      "id": "easy-shell-true",
+      "tier": "easy",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 27.75,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 4,
+          "rule": "SEC-3",
+          "confidence": 1.0,
+          "message": "Use of shell=True in subprocess.run is dangerous when handling dynamic input as it allows for shell injection attacks."
+        }
+      ]
+    },
+    {
+      "id": "easy-mutable-default",
+      "tier": "easy",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 24.1,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 1,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Mutable default argument 'bucket=[]' persists across function calls, leading to unexpected state sharing between different invocations."
+        }
+      ]
+    },
+    {
+      "id": "easy-none-compare",
+      "tier": "easy",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 27.06,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "low",
+          "line": 2,
+          "rule": null,
+          "confidence": 0.9,
+          "message": "Comparison to None should use 'is None' instead of '== None' to avoid potential issues with overridden __eq__ methods."
+        }
+      ]
+    },
+    {
+      "id": "easy-missing-tests",
+      "tier": "easy",
+      "expected": [
+        "tests"
+      ],
+      "got": [
+        "tests"
+      ],
+      "seconds": 29.97,
+      "findings": [
+        {
+          "category": "tests",
+          "severity": "medium",
+          "line": 1,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Newly added source code lacks accompanying unit tests."
+        }
+      ]
+    },
+    {
+      "id": "easy-long-line",
+      "tier": "easy",
+      "expected": [
+        "style"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 23.69,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "medium",
+          "line": 1,
+          "rule": null,
+          "confidence": 0.8,
+          "message": "Hardcoded secret or sensitive configuration detected in source code."
+        }
+      ]
+    },
+    {
+      "id": "easy-clean-compute",
+      "tier": "easy",
+      "expected": [],
+      "got": [],
+      "seconds": 27.18,
+      "findings": []
+    },
+    {
+      "id": "easy-clean-clamp",
+      "tier": "easy",
+      "expected": [],
+      "got": [
+        "bug"
+      ],
+      "seconds": 27.47,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "medium",
+          "line": 2,
+          "rule": null,
+          "confidence": 0.8,
+          "message": "The clamp function does not handle the case where lo > hi, which can lead to unexpected behavior (returning hi instead of lo or vice versa depending on input)."
+        }
+      ]
+    },
+    {
+      "id": "easy-clean-subprocess-list",
+      "tier": "easy",
+      "expected": [],
+      "got": [
+        "bug"
+      ],
+      "seconds": 27.84,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "medium",
+          "line": 4,
+          "rule": null,
+          "confidence": 0.9,
+          "message": "The function does not handle potential CalledProcessError exceptions when git status fails (e.g., if not in a git repository), which will cause the application to crash."
+        }
+      ]
+    },
+    {
+      "id": "easy-clean-env-secret",
+      "tier": "easy",
+      "expected": [],
+      "got": [
+        "bug"
+      ],
+      "seconds": 25.73,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 3,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Accessing os.environ['API_KEY'] directly will raise a KeyError if the environment variable is missing, causing the application to crash on startup. Use os.getenv('API_KEY') or provide a default value."
+        }
+      ]
+    },
+    {
+      "id": "easy-clean-with-open",
+      "tier": "easy",
+      "expected": [],
+      "got": [
+        "security"
+      ],
+      "seconds": 29.15,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 2,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Path traversal vulnerability: The 'path' argument is used directly in open() without validation, allowing an attacker to read arbitrary files on the system."
+        }
+      ]
+    },
+    {
+      "id": "easy-clean-is-none",
+      "tier": "easy",
+      "expected": [],
+      "got": [],
+      "seconds": 24.15,
+      "findings": []
+    }
+  ]
+}

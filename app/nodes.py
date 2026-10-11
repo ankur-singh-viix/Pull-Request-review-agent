@@ -17,8 +17,10 @@ SEV_ORDER = {"high": 0, "medium": 1, "low": 2}
 FOCUS = {
     "security": "security vulnerabilities (injection, secrets, unsafe deserialization, authz)",
     "bug": "logic bugs, unhandled errors, race conditions, wrong edge-case behaviour",
-    "style": "readability, naming, dead code, and maintainability problems",
-    "tests": "missing or inadequate tests for the changed behaviour",
+    "style": "violations of the team style guidelines, and clearly harmful readability "
+             "problems such as dead or commented-out code",
+    "tests": "newly added source code with no accompanying tests, or tests that contain "
+             "no assertions",
 }
 
 
@@ -62,8 +64,11 @@ def _llm_review(category: str, state: ReviewState) -> list[Finding]:
         ("system", (
             "You are a meticulous senior code reviewer. Review ONLY for {focus}. "
             "Report only real issues in ADDED lines. Use the file path and new-file line number. "
-            "Set confidence honestly (0-1). Return an empty list if the code is fine. "
-            "Change types in this PR: {types}.\n\n"
+            "Set confidence honestly (0-1). Be conservative: report only concrete problems "
+            "you are confident about, never hypothetical ones, and return an empty list if "
+            "nothing is clearly wrong. The diff is a partial snippet, so do not complain about "
+            "missing imports, definitions, or code outside it, and do not report issues outside "
+            "your focus. Change types in this PR: {types}.\n\n"
             "Team guidelines relevant to this review. A violation is a finding; set `rule` to "
             "the guideline id (for example SEC-1) when you cite one:\n{guidelines}")),
         ("human", "Category: {category}\n\nDiff:\n{diff}"),
@@ -77,6 +82,7 @@ def _llm_review(category: str, state: ReviewState) -> list[Finding]:
     valid_ids = {g["rule_id"] for g in rules}
     for f in out:
         f.category = category
+        f.verified = False
         if f.rule not in valid_ids:  # drop hallucinated rule ids
             f.rule = None
     return out
@@ -90,36 +96,71 @@ def make_reviewer(category: str, heuristic: Callable[[str], list[Finding]]):
     return node
 
 
+CAT_PRIORITY = {"security": 0, "bug": 1, "style": 2, "tests": 3}
+
+
+def verify_all() -> bool:
+    """Opt-in: with VERIFY_ALL=1 and a real LLM, every finding gets a skeptical second look."""
+    return not use_fake() and os.getenv("VERIFY_ALL", "0") == "1"
+
+
+def _verifier():
+    model = os.getenv("LLM_VERIFY_MODEL")
+    return get_llm(model) if model else get_llm()
+
+
+def _rank(f: Finding) -> tuple:
+    """Lower sorts first. Verified verdicts win, then findings that cite a team rule, then
+    severity, then category (security > bug > style > tests), then confidence."""
+    return (not f.verified, f.rule is None, SEV_ORDER.get(f.severity, 3),
+            CAT_PRIORITY.get(f.category, 9), -f.confidence)
+
+
 def aggregate(state: ReviewState) -> dict:
+    # One finding per source line: the four reviewers often report the same problem under
+    # several categories, and one comment per line is also what a human reviewer would leave.
     best: dict[tuple, Finding] = {}
     for f in state.get("findings", []):
-        key = (f.file, f.line, f.category)
-        if key not in best or f.confidence > best[key].confidence:
+        key = (f.file, f.line) if f.line else (f.file, None, f.category)
+        cur = best.get(key)
+        if cur is None or _rank(f) < _rank(cur):
             best[key] = f
     final = sorted((f for f in best.values() if f.confidence >= CONF_THRESHOLD),
                    key=lambda f: (SEV_ORDER.get(f.severity, 3), f.file, f.line or 0))
-    pending = [f for f in best.values() if f.confidence < CONF_THRESHOLD]
+    check_all = verify_all()
+    pending = [f for f in best.values()
+               if not f.verified and (check_all or f.confidence < CONF_THRESHOLD)]
+    if check_all:  # nothing is final until it has been verified
+        final = [f for f in final if f.verified]
     return {"final_findings": final, "pending": pending}
 
 
 def verify(state: ReviewState) -> dict:
-    """Second look at low-confidence findings; confirmed ones are promoted."""
+    """Second look at pending findings; the skeptic confirms or drops each one."""
     rescored: list[Finding] = []
     for f in state.get("pending", []):
         if use_fake():
             conf = 0.8 if f.severity in ("high", "medium") else 0.0
         else:
+            rule_text = next((g["text"] for g in state.get("guidelines", [])
+                              if g["rule_id"] == f.rule), "")
             prompt = ChatPromptTemplate.from_messages([
                 ("system", (
-                    "Decide whether this code-review finding is a real issue in the diff. "
-                    "Be skeptical.")),
+                    "You are a skeptical senior reviewer double-checking another reviewer's "
+                    "finding. Mark it valid ONLY if the added code definitely has this problem "
+                    "as written. Hypothetical issues, defensive-programming suggestions, and "
+                    "problems that depend on code not shown in the snippet are NOT valid. "
+                    "A violation of the team guideline below IS valid.\n\n"
+                    "Team guideline: {rule}")),
                 ("human", "Finding: {finding}\n\nDiff:\n{diff}"),
             ])
-            v = (prompt | get_llm().with_structured_output(Verdict)).invoke(
-                {"finding": f.model_dump_json(), "diff": state["diff"][:MAX_DIFF_CHARS]})
+            v = (prompt | _verifier().with_structured_output(Verdict)).invoke(
+                {"finding": f.model_dump_json(include={"category", "severity", "file", "line",
+                                                       "message", "rule"}),
+                 "rule": rule_text or "(none)", "diff": state["diff"][:MAX_DIFF_CHARS]})
             v = Verdict.model_validate(v)
-            conf = max(f.confidence, v.confidence) if v.valid else 0.0
-        rescored.append(f.model_copy(update={"confidence": conf}))
+            conf = max(f.confidence, v.confidence, CONF_THRESHOLD) if v.valid else 0.0
+        rescored.append(f.model_copy(update={"confidence": conf, "verified": True}))
     return {"findings": rescored, "verify_attempts": state.get("verify_attempts", 0) + 1}
 
 

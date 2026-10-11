@@ -13,7 +13,9 @@ from collections import defaultdict
 from pathlib import Path
 
 from app.graph import run_review
+
 from app.llm import describe
+from app.nodes import verify_all
 from app.rag import guidelines_enabled
 from evals.cases import CASES
 
@@ -24,7 +26,7 @@ def _rates(tp: int, fn: int, fp: int) -> tuple[float, float]:
     return recall, precision
 
 
-def evaluate(cases: list[dict]) -> dict:
+def evaluate(cases: list[dict], show: bool = False) -> dict:
     per: dict[str, dict[str, int]] = defaultdict(lambda: {"tp": 0, "fn": 0, "fp": 0})
     rows: list[dict] = []
     clean_total = clean_flagged = errors = 0
@@ -39,7 +41,9 @@ def evaluate(cases: list[dict]) -> dict:
             rows.append({"id": case["id"], "error": str(exc)[:200]})
             print(f"[ERR ] {case['id']:<28} {type(exc).__name__}: {str(exc)[:70]}")
             continue
-        got = {f.category for f in out["final_findings"]}
+        ignore = set(case.get("ignore", []))  # categories this case does not score
+        found = [f for f in out["final_findings"] if f.category not in ignore]
+        got = {f.category for f in found}
         for cat in got | want:
             if cat in got and cat in want:
                 per[cat]["tp"] += 1
@@ -51,11 +55,19 @@ def evaluate(cases: list[dict]) -> dict:
             clean_total += 1
             clean_flagged += bool(got)
         secs = time.perf_counter() - start
+        details = [{"category": f.category, "severity": f.severity, "line": f.line,
+                    "rule": f.rule, "confidence": f.confidence, "message": f.message}
+                   for f in found]
         rows.append({"id": case["id"], "tier": case["tier"], "expected": sorted(want),
-                     "got": sorted(got), "seconds": round(secs, 2)})
+                     "got": sorted(got), "seconds": round(secs, 2), "findings": details})
         status = "ok  " if got == want else "MISS"
         print(f"[{status}] {case['id']:<28} expected={sorted(want)} got={sorted(got)} "
               f"({secs:.1f}s)")
+        if show and got != want:
+            for d in details:
+                tag = f" [{d['rule']}]" if d["rule"] else ""
+                print(f"         - {d['category']}/{d['severity']} c={d['confidence']:.2f} line {d['line']}{tag}: "
+                      f"{d['message'][:110]}")
 
     tp = sum(v["tp"] for v in per.values())
     fn = sum(v["fn"] for v in per.values())
@@ -72,16 +84,18 @@ def evaluate(cases: list[dict]) -> dict:
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--tier", choices=["easy", "hard","team", "all"], default="all")
+    ap.add_argument("--tier", choices=["easy", "hard", "team", "all"], default="all")
     ap.add_argument("--min-recall", type=float, default=0.0)
     ap.add_argument("--min-precision", type=float, default=0.0)
     ap.add_argument("--save", help="write a JSON report to this path")
+    ap.add_argument("--show", action="store_true", help="print the findings of cases that miss")
     args = ap.parse_args()
 
     cases = [c for c in CASES if args.tier == "all" or c["tier"] == args.tier]
-    mode = f"{describe()} rag={'on' if guidelines_enabled() else 'off'}"
+    mode = (f"{describe()} rag={'on' if guidelines_enabled() else 'off'} "
+            f"verify={'on' if verify_all() else 'off'}")
     print(f"mode={mode} tier={args.tier} cases={len(cases)}\n")
-    report = evaluate(cases)
+    report = evaluate(cases, show=args.show)
 
     print("\nper category:")
     for cat, m in report["per_category"].items():

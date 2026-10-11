@@ -1,0 +1,108 @@
+{
+  "mode": "gemini:gemini-3.1-flash-lite rag=on verify=off",
+  "tier": "team",
+  "recall": 1.0,
+  "precision": 1.0,
+  "errors": 0,
+  "false_positive_rate_on_clean": 0.0,
+  "per_category": {
+    "bug": {
+      "recall": 1.0,
+      "precision": 1.0
+    },
+    "security": {
+      "recall": 1.0,
+      "precision": 1.0
+    },
+    "style": {
+      "recall": 1.0,
+      "precision": 1.0
+    }
+  },
+  "cases": [
+    {
+      "id": "team-raw-request-json",
+      "tier": "team",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 29.69,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 3,
+          "rule": "REL-5",
+          "confidence": 1.0,
+          "message": "Directly accessing request.get_json() violates REL-5. Use a Pydantic model for request body validation."
+        }
+      ]
+    },
+    {
+      "id": "team-leak-exception",
+      "tier": "team",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug"
+      ],
+      "seconds": 28.1,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "medium",
+          "line": 5,
+          "rule": "REL-6",
+          "confidence": 1.0,
+          "message": "Returning raw exception text to the client violates REL-6. Log the exception and return a generic error message instead."
+        }
+      ]
+    },
+    {
+      "id": "team-internal-raw-requests",
+      "tier": "team",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "security"
+      ],
+      "seconds": 26.19,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 4,
+          "rule": "SEC-6",
+          "confidence": 1.0,
+          "message": "Direct use of requests to call internal service billing.internal violates SEC-6. Use internal_client instead."
+        }
+      ]
+    },
+    {
+      "id": "team-logger",
+      "tier": "team",
+      "expected": [
+        "style"
+      ],
+      "got": [
+        "style"
+      ],
+      "seconds": 25.74,
+      "findings": [
+        {
+          "category": "style",
+          "severity": "medium",
+          "line": 3,
+          "rule": "STY-4",
+          "confidence": 1.0,
+          "message": "Use get_logger(__name__) from app.logging instead of logging.getLogger"
+        }
+      ]
+    }
+  ]
+}

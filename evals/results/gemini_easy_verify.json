@@ -1,0 +1,366 @@
+{
+  "mode": "gemini:gemini-3.1-flash-lite rag=on",
+  "tier": "easy",
+  "recall": 1.0,
+  "precision": 0.3181818181818182,
+  "errors": 0,
+  "false_positive_rate_on_clean": 0.6666666666666666,
+  "per_category": {
+    "bug": {
+      "recall": 1.0,
+      "precision": 0.25
+    },
+    "security": {
+      "recall": 1.0,
+      "precision": 0.6
+    },
+    "style": {
+      "recall": 1.0,
+      "precision": 0.125
+    },
+    "tests": {
+      "recall": 1.0,
+      "precision": 1.0
+    }
+  },
+  "cases": [
+    {
+      "id": "easy-hardcoded-secret",
+      "tier": "easy",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "bug",
+        "security",
+        "style"
+      ],
+      "seconds": 56.24,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 1,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Hardcoded API key detected in source code. This should be moved to environment variables or a secret management service."
+        },
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 1,
+          "rule": "SEC-2",
+          "confidence": 1.0,
+          "message": "Hardcoded API key detected. Secrets must be retrieved from environment variables or a secret manager."
+        },
+        {
+          "category": "style",
+          "severity": "high",
+          "line": 1,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Hardcoded API key detected. Sensitive credentials should be stored in environment variables or a secure secret manager."
+        }
+      ]
+    },
+    {
+      "id": "easy-eval",
+      "tier": "easy",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "bug",
+        "security",
+        "style"
+      ],
+      "seconds": 53.39,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 2,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Use of eval() on user-provided input allows arbitrary code execution."
+        },
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 2,
+          "rule": "SEC-3",
+          "confidence": 1.0,
+          "message": "Use of eval() on user-provided input is a critical security vulnerability allowing arbitrary code execution."
+        },
+        {
+          "category": "style",
+          "severity": "high",
+          "line": 2,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Use of eval() is a critical security vulnerability as it allows arbitrary code execution."
+        }
+      ]
+    },
+    {
+      "id": "easy-shell-true",
+      "tier": "easy",
+      "expected": [
+        "security"
+      ],
+      "got": [
+        "bug",
+        "security",
+        "style"
+      ],
+      "seconds": 54.31,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 4,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Using shell=True with unsanitized input is vulnerable to shell injection attacks."
+        },
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 4,
+          "rule": "SEC-3",
+          "confidence": 1.0,
+          "message": "Use of shell=True in subprocess.run is dangerous when handling dynamic input as it allows for shell injection attacks."
+        },
+        {
+          "category": "style",
+          "severity": "high",
+          "line": 4,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Use of shell=True in subprocess.run is a security risk as it allows shell injection if the input is not sanitized."
+        }
+      ]
+    },
+    {
+      "id": "easy-mutable-default",
+      "tier": "easy",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug",
+        "security",
+        "style"
+      ],
+      "seconds": 53.9,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 1,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Mutable default argument 'bucket=[]' persists across function calls, leading to unexpected state sharing between different invocations."
+        },
+        {
+          "category": "style",
+          "severity": "high",
+          "line": 1,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Mutable default argument 'bucket=[]' used. This will persist across function calls, leading to unexpected behavior."
+        },
+        {
+          "category": "security",
+          "severity": "medium",
+          "line": 1,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Mutable default argument 'bucket' used in function definition. This can lead to state leakage between requests in a backend environment, potentially causing data contamination or unauthorized access to data belonging to other users."
+        }
+      ]
+    },
+    {
+      "id": "easy-none-compare",
+      "tier": "easy",
+      "expected": [
+        "bug"
+      ],
+      "got": [
+        "bug",
+        "style"
+      ],
+      "seconds": 46.68,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "low",
+          "line": 2,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Comparison to None should use 'is None' instead of '== None' to avoid potential issues with overridden __eq__ methods."
+        },
+        {
+          "category": "style",
+          "severity": "low",
+          "line": 2,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Use 'is None' instead of '== None' to check for NoneType."
+        }
+      ]
+    },
+    {
+      "id": "easy-missing-tests",
+      "tier": "easy",
+      "expected": [
+        "tests"
+      ],
+      "got": [
+        "tests"
+      ],
+      "seconds": 33.27,
+      "findings": [
+        {
+          "category": "tests",
+          "severity": "medium",
+          "line": 1,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Newly added source code lacks accompanying unit tests."
+        }
+      ]
+    },
+    {
+      "id": "easy-long-line",
+      "tier": "easy",
+      "expected": [
+        "style"
+      ],
+      "got": [
+        "style"
+      ],
+      "seconds": 50.02,
+      "findings": [
+        {
+          "category": "style",
+          "severity": "low",
+          "line": 1,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Line exceeds recommended maximum length of 88 characters (PEP 8)."
+        }
+      ]
+    },
+    {
+      "id": "easy-clean-compute",
+      "tier": "easy",
+      "expected": [],
+      "got": [],
+      "seconds": 37.27,
+      "findings": []
+    },
+    {
+      "id": "easy-clean-clamp",
+      "tier": "easy",
+      "expected": [],
+      "got": [
+        "bug"
+      ],
+      "seconds": 42.3,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "medium",
+          "line": 2,
+          "rule": null,
+          "confidence": 0.9,
+          "message": "The clamp function does not handle the case where lo > hi, which can lead to unexpected behavior (returning hi instead of lo or vice versa depending on input)."
+        }
+      ]
+    },
+    {
+      "id": "easy-clean-subprocess-list",
+      "tier": "easy",
+      "expected": [],
+      "got": [
+        "bug"
+      ],
+      "seconds": 40.32,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "medium",
+          "line": 4,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "The function does not handle potential CalledProcessError exceptions when git status fails (e.g., if not in a git repository), which will cause the application to crash."
+        }
+      ]
+    },
+    {
+      "id": "easy-clean-env-secret",
+      "tier": "easy",
+      "expected": [],
+      "got": [
+        "bug",
+        "style"
+      ],
+      "seconds": 47.11,
+      "findings": [
+        {
+          "category": "bug",
+          "severity": "high",
+          "line": 3,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Accessing os.environ['API_KEY'] directly will raise a KeyError if the environment variable is missing, causing the application to crash on startup. Use os.getenv('API_KEY') or provide a default value."
+        },
+        {
+          "category": "style",
+          "severity": "high",
+          "line": 3,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Direct access to environment variables using os.environ['KEY'] will raise a KeyError if the variable is missing. Use os.getenv('KEY') or a configuration management library to provide default values or handle missing configuration gracefully."
+        }
+      ]
+    },
+    {
+      "id": "easy-clean-with-open",
+      "tier": "easy",
+      "expected": [],
+      "got": [
+        "security",
+        "style"
+      ],
+      "seconds": 47.03,
+      "findings": [
+        {
+          "category": "security",
+          "severity": "high",
+          "line": 2,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "Path traversal vulnerability: The 'path' argument is used directly in open() without validation, allowing an attacker to read arbitrary files on the system."
+        },
+        {
+          "category": "style",
+          "severity": "low",
+          "line": 2,
+          "rule": null,
+          "confidence": 1.0,
+          "message": "File opened without explicit encoding. Use 'encoding=\"utf-8\"' to ensure consistent behavior across platforms."
+        }
+      ]
+    },
+    {
+      "id": "easy-clean-is-none",
+      "tier": "easy",
+      "expected": [],
+      "got": [],
+      "seconds": 33.74,
+      "findings": []
+    }
+  ]
+}
